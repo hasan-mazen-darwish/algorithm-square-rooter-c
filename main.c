@@ -129,7 +129,6 @@ int main() {
 
   printf("Here is the input: %s\n", input);
 
-  // DON'T FORGET TO FREE THE INPUT
-
+  free(input);
   return 0;
 }
