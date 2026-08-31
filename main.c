@@ -9,7 +9,7 @@ char* trimZeroes(char *input, size_t *length, bool *hasDot) {
   // the next digit is not 0, the loop will stop.
   char *start = input;
   size_t len = *length;
-  while (*length > 1 && *start == '0') {
+  while (len > 1 && *start == '0') {
     start++;
     len--;
   }
@@ -19,7 +19,7 @@ char* trimZeroes(char *input, size_t *length, bool *hasDot) {
   // Also, we will remove the last decimal too if it was in the end.
   char *end = input + *length - 1;
   if(*hasDot) {
-    while(*length > 1 && (*end == '0' || *end == '.') && *hasDot) {
+    while(len > 1 && (*end == '0' || *end == '.') && *hasDot) {
       if(*end == '.') *hasDot = false;
       *end = '\0';
       end--;
