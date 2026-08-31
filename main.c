@@ -28,7 +28,9 @@ char* trimZeroes(char *input, size_t *length, bool *hasDot) {
   }
 
   *length = len;
-  return start;
+  memmove(input, start, *length);
+  input[*length] = '\0';
+  return input;
 }
 
 int main() {
@@ -89,12 +91,10 @@ int main() {
 
   // Now we will truncate the zeroes in the beginning of the input:
   char *newInput = trimZeroes(input, &len, &inputIncludesDot);
-  newInput;
+  input = newInput;
 
-  printf("Here is the input: %s\n", newInput);
+  printf("Here is the input: %s\n", input);
 
   free(input);
-  input = NULL;
-  newInput = NULL;
   return 0;
 }
