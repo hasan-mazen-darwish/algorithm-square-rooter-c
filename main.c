@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stddef.h>
 
 char* trimZeroes(char *input, size_t *length, bool *hasDot) {
   // This code will check all the digits starting from the zero. Since the *start is zero, then the loop
@@ -33,12 +34,18 @@ char* trimZeroes(char *input, size_t *length, bool *hasDot) {
   return input;
 }
 
+// The structure of the parts: it holds pointers because the size of the arrays is unknown until the runtime.
+struct Parts {
+  *unsigned int wholePart;
+  *unsigned int decimalPart;
+}
+
 int main() {
   printf("Hello and welcome to the square rooter algorithm!\n");
   printf("An algorithm completely built with native C (refactored from my C++ original one). No external dependencues.\n");
   printf("-----------------------------\n\n");
 
-  printf("Please enter the number you want to square root (maximum limit of 200 digits, including the dot): ");
+  printf("Please enter the number you want to square root (maximum limit of 200 digits, including the dot):\n");
   char *input = malloc(200 * sizeof(char));
   if(input == NULL) {
     printf("An error during allocating memory for the input!\n");
@@ -62,6 +69,7 @@ int main() {
 
   char *p;
   bool inputIncludesDot = false;
+  size_t decimalIndex   = 0;
   for(p = input; p<input+len; p++) {
     if(
         *p != '0' &&
@@ -85,7 +93,10 @@ int main() {
         printf("Error! The provided number has many dots. Please provide a real number!\n");
         return 1;
       }
-      else inputIncludesDot = true;
+      else {
+        inputIncludesDot = true;
+        decimalIndex = (size_t)(p - input);
+      }
     }
   }
 
@@ -93,8 +104,34 @@ int main() {
   char *newInput = trimZeroes(input, &len, &inputIncludesDot);
   input = newInput;
 
-  printf("Here is the input: %s\n", input);
+  printf("\nGot it. The number you provided is %s.\n", input);
+  printf("Now, please provide the number of digits you want to approximate to:\n");
+
+  // Now we will handle digit input and sanitization:
+  char *buffer[100];
+  char *endptr;
+  unsigned int num = 0;
+
+  if(fgets(buffer, sizeof(buffer), stdin) != NULL) {
+    num = strtol(buffer, &endptr, 10);
+    if(buffer == endptr) {
+      printf("Invalid digits input!");
+      return 1;
+    }
+    else if(*endptr != '\0' && *endptr != '\n') {
+      printf("Invalid end of input!");
+      return 1;
+    }
+  }
+
+  // Now we will separate the number into parts. We will use our struct:
+  Parts *parts = malloc(sizeof(Parts));
+  parts->wholePart = calloc(1, sizeof(unsigned int));
+  parts->decimalPart = calloc(1, sizeof(unsigned int));
 
   free(input);
+  free(parts->wholePart);
+  free(parts->decimalPart);
+  free(parts);
   return 0;
 }
