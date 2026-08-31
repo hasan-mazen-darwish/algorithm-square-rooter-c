@@ -3,50 +3,32 @@
 #include <stdbool.h>
 #include <string.h>
 
-// This function removes the first element from an array. For example:
-// {1,2,3,4} -> {2,3,4}
-// and it also modifies the length of the original array. That's why the length parameter is used
-void* popFirst(char *input, size_t *length) {
-  if(*length <= 1) {
-    char *empty = malloc(1);
-    if(empty) empty[0] = '\0';
-    input = empty;
-    *length = 0;
-    return empty;
+char* trimZeroes(char *input, size_t *length, bool *hasDot) {
+  // This code will check all the digits starting from the zero. Since the *start is zero, then the loop
+  // will continue. And it will shift the pointer of the input to the right (trim the first digit). If
+  // the next digit is not 0, the loop will stop.
+  char *start = input;
+  size_t len = *length;
+  while (*length > 1 && *start == '0') {
+    start++;
+    len--;
   }
 
-  size_t outputLength = *length;
-  char *output = malloc(outputLength * sizeof(char));
-
-  for(size_t i=1; i<outputLength; i++)
-    output[i-1] = input[i];
-  
-  output[outputLength - 1] = '\0';
-  (*length)--;
-  return output;
-}
-
-// This function removes the last element from an array. For example:
-// {1,2,3,4} -> {1,2,3}
-// and it also modifies the length of the original array. That's why the length parameter is used
-void* popLast(char *input, size_t *length) {
-  if(*length <= 1) {
-    char *empty = malloc(1);
-    if(empty) empty[0] = '\0';
-    input = empty;
-    *length = 0;
-    return empty;
+  // Doing the exact same for the zeroes on the right: if we have a zero on the very right and there is a
+  // decimal, we will be shifting the end pointer to the left.
+  // Also, we will remove the last decimal too if it was in the end.
+  char *end = input + *length - 1;
+  if(*hasDot) {
+    while(*length > 1 && (*end == '0' || *end == '.') && *hasDot) {
+      if(*end == '.') *hasDot = false;
+      *end = '\0';
+      end--;
+      len--;
+    }
   }
 
-  size_t outputLength = *length;
-  char *output = malloc(outputLength * sizeof(char));
-
-  for(size_t i=0; i<outputLength; i++)
-    output[i] = input[i];
-  
-  output[outputLength - 1] = '\0';
-  (*length)--;
-  return output;
+  *length = len;
+  return start;
 }
 
 int main() {
@@ -105,30 +87,14 @@ int main() {
     }
   }
 
-  p = input;
   // Now we will truncate the zeroes in the beginning of the input:
-  while(len > 1 && *p == '0') {
-    char *newInput = popFirst(input, &len);
-    free(input);
-    input = newInput;
-    p = newInput;
-  }
+  char *newInput = trimZeroes(input, &len, &inputIncludesDot);
+  newInput;
 
-  len = strlen(input);
-  p = input + len - 1;
-  // And then the zeroes in the last of the input:
-  while(len > 1 && *p == '0' && inputIncludesDot) {
-    char *newInput = popLast(input, &len);
-    free(input);
-    input = newInput;
-    p = newInput + len - 1;
-  }
-  
-  // Finally just trim the final dot from the input if any:
-  if(input[strlen(input) - 1] == '.') input[strlen(input) - 1] = '\0';
-
-  printf("Here is the input: %s\n", input);
+  printf("Here is the input: %s\n", newInput);
 
   free(input);
+  input = NULL;
+  newInput = NULL;
   return 0;
 }
