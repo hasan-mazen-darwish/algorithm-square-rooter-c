@@ -34,11 +34,23 @@ char* trimZeroes(char *input, size_t *length, bool *hasDot) {
   return input;
 }
 
+void printIntegerArray(int* array, size_t length, char* text) {
+  int *lastElement = array + length - 1;
+  printf("%s: <", text);
+  for(int* p = array; p <= lastElement; p++) {
+    if(p == lastElement) printf("%d", *p);
+    else printf("%d,", *p);
+  }
+  printf(">\n");
+}
+
 // The structure of the parts: it holds pointers because the size of the arrays is unknown until the runtime.
 struct Parts {
-  *unsigned int wholePart;
-  *unsigned int decimalPart;
-}
+  unsigned int *wholePart;
+  size_t wholePartSize;
+  unsigned int *decimalPart;
+  size_t decimalPartSize;
+};
 
 int main() {
   printf("Hello and welcome to the square rooter algorithm!\n");
@@ -108,7 +120,7 @@ int main() {
   printf("Now, please provide the number of digits you want to approximate to:\n");
 
   // Now we will handle digit input and sanitization:
-  char *buffer[100];
+  char buffer[100];
   char *endptr;
   unsigned int num = 0;
 
@@ -125,11 +137,91 @@ int main() {
   }
 
   // Now we will separate the number into parts. We will use our struct:
-  Parts *parts = malloc(sizeof(Parts));
-  parts->wholePart = calloc(1, sizeof(unsigned int));
-  parts->decimalPart = calloc(1, sizeof(unsigned int));
+  struct Parts *parts = malloc(sizeof(struct Parts));
+  parts->wholePart = calloc(0, sizeof(unsigned int));
+  parts->wholePartSize = 0;
+  parts->decimalPart = calloc(0, sizeof(unsigned int));
+  parts->decimalPartSize = 0;
 
+  size_t wholeLength = strlen(input);
+  size_t decimalLength = 0;
+
+  // If the input has a decimal point, then we will have to take care of it:
+  if(inputIncludesDot) {
+    wholeLength = decimalIndex;
+    decimalLength = len - wholeLength - 1; // Subtracting 1 for the decimal (cannot count the . as a number)
+  }
+
+  if(wholeLength & 1) { // The wholeLength is odd, so we add 0 to the first of the input to make it even.
+    len++;
+    char *new_temp = realloc(input, len*sizeof(char));
+    if(new_temp == NULL) {
+      printf("Failed reallocating memory for the new leading 0 to the input.\n");
+      return 1;
+    }
+    input = new_temp;
+    
+    memmove(input+1, input, len);
+    input[0] = '0';
+    wholeLength++;
+    decimalIndex++;
+  }
+
+  if(((decimalLength & 1) == 1) && inputIncludesDot) { // The decimalLength is odd AND the decimal exists
+    len++;
+    input[len - 1] = '0';
+    input[len] = '\0';
+    decimalLength++;
+  }
+
+  // Now, we have the both the decimal length and the whole length even numbers.
+  // We can process the parts easily.
+  char *start;
+  for(start = input; start < input + wholeLength; start+=2) {
+    if(*start == '\0') break;
+    parts->wholePartSize++;
+    unsigned int pair = (((*start)-'0') * 10) + ((*(start + 1)) - '0');
+    unsigned int *temp_pair = realloc(parts->wholePart, (parts->wholePartSize)*sizeof(unsigned int));
+    if(temp_pair == NULL) {
+      printf("Failed to reallocate a new memory location when reallocating for a new pair in the whole part.\n");
+      return 1;
+    }
+
+    parts->wholePart = temp_pair;
+    parts->wholePart[parts->wholePartSize - 1] = pair;
+  }
+
+  char *decimalStart;
+  // Adding a check in the for loop to not calculate this part if the input has no decimal point
+  for(decimalStart = input + decimalIndex + 1; inputIncludesDot && (decimalStart < input + strlen(input)); decimalStart+=2) {
+    if(*decimalStart == '\0') break;
+    parts->decimalPartSize++;
+    unsigned int pair = (((*decimalStart)-'0') * 10) + ((*(decimalStart + 1)) - '0');
+    unsigned int *temp_pair = realloc(parts->decimalPart, ((parts->decimalPartSize)+1)*sizeof(unsigned int));
+    if(temp_pair == NULL) {
+      printf("Failed to reallocate a new memory location when reallocating for a new pair in the decimal part.\n");
+      return 1;
+    }
+
+    parts->decimalPart = temp_pair;
+    parts->decimalPart[parts->decimalPartSize - 1] = pair;
+  }
+
+  if(parts->wholePartSize < 1) {
+    parts->wholePartSize = 1;
+    parts->wholePart = calloc(1, sizeof(unsigned int));
+  }
+
+  if(parts->decimalPartSize < 1) {
+    parts->decimalPartSize = 1;
+    parts->decimalPart = calloc(1, sizeof(unsigned int));
+  }
+
+  // Freeing the input because we don't need it anymore after dissecting it.
   free(input);
+
+
+
   free(parts->wholePart);
   free(parts->decimalPart);
   free(parts);
