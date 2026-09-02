@@ -24,6 +24,32 @@ void bn_zero(BigNumber* target) {
   target->digitsNumber = 1;
 }
 
+// ====== Debuggers and printers ======
+
+void bn_print_big_to_small(const BigNumber* number) {
+  uint64_t* first = number->digits;
+  uint64_t* last  = number->digits + number->digitsNumber - 1;
+
+  printf("<");
+  for(uint64_t* p = last; p >= first; p--) {
+    if(p == first) printf("%d", *p);
+    else printf("%d,", *p);
+  }
+  printf(">");
+}
+
+void bn_print_small_to_big(const BigNumber* number) {
+  uint64_t* first = number->digits;
+  uint64_t* last  = number->digits + number->digitsNumber - 1;
+
+  printf("<");
+  for(uint64_t* p = first; p <= last; p--) {
+    if(p == last) printf("%d", *p);
+    else printf("%d,", *p);
+  }
+  printf(">");
+}
+
 // ====== Comparsions ======
 
 bool bn_is_zero(const BigNumber* number) {
